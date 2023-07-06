@@ -1366,10 +1366,58 @@ docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /va
 
 ![image-20220702160328972](https://s2.loli.net/2022/07/02/OUTrAEmwsNoSG8Y.png)
 
-# Docker-Compose单机容器编排
+# Docker-Compose容器编排
 
-对容器进行编排：
-比如现在要在一台主机上部署很多种类型的服务，包括数据库、消息队列、SpringBoot应用程序若干，或是想要搭建一个MySQL集群，这时就需要创建多个容器来完成。
-同时希望能够一键部署，那么就需要用到容器编排了，让多个容器按照我自定义的编排进行部署。
+在实际工作中，部署一个应用可能需要部署多个容器【比如现在要在一台主机上部署很多种类型的服务，包括数据库、消息队列、SpringBoot应用程序若干，或是想要搭建一个MySQL集群】，一个个部署非常不方便。
 
-**更多配置操作，看官方文档**：https://docs.docker.com/get-started/08_using_compose/
+使用docker compose可以一键部署和启动多个容器，它使用yaml文件来编排服务。
+
+**详细配置看官方文档**：https://docs.docker.com/get-started/08_using_compose/
+
+**使用流程**
+① 先安装插件
+
+```bash
+sudo apt install docker-compose-plugin
+//检查版本，验证是否安装成功
+docker compose version
+```
+
+② 编写docker-compose.yml文件
+
+③ 在docker-compose.yml 文件所在目录，执行`docker-compose up`就可以跑起来
+
+**常见命令**
+
+```bash
+//在后台运行
+docker-compose up -d
+//查看运行状态
+docker-compose ps
+//停止运行
+docker-compose stop
+//重启
+docker-compose restart
+//重启单个服务
+docker-compose restart service-name
+//进入容器命令行
+docker-compose exec service-name sh
+//查看容器运行log
+docker-compose logs [service-name]
+```
+
+**compose文件结构**
+docker-compose.yml通常需要包含以下几个顶级元素：
+`version` 已弃用，早期版本需要此元素。
+`services`必要元素，定义一个或多个容器的运行参数。在services中可以通过以下元素定义容器的运行参数
+* `image` 容器 镜像
+* `ports`端口映射
+* `environment`环境变量
+* `networks`容器使用的网络
+* `volumes`容器挂载的存储卷
+* `command`容器启动时执行的命令
+* `depends_on`定义启动顺序
+复数形式（例如ports,networks,volumes,depends_on）参数需要传入列表
+
+`networks`创建自定义网络
+`volumes` 创建存储卷
