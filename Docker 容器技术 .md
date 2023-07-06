@@ -141,45 +141,119 @@ sudo docker run -d -p 80:80 nginx
 
 # 搭建Docker环境
 
-在使用Docker之前，先把相关环境搭好。这里使用Ubuntu 22.04 操作系统
+**Windows**：容器主要使用linux内核技术，因此Windows下安装docker可能会有遇到各种问题。
 
-选择docker-ce进行安装。官方安装文档：https://docs.docker.com/engine/install/ubuntu/
+## Ubuntu
 
-① 这个在Ubuntu22.04已经默认安装好了
+选择docker-ce进行安装即可
+
+官方安装文档：https://docs.docker.com/engine/install/ubuntu/
+
+① 卸载已安装的旧版本
+旧版本的Docker使用docker、docker.io以及docker-engine的名称，可能还安装了containerd或runc等等。总之，在安装Docker之前，先卸载所有旧版本：
+```sh
+sudo apt-get remove docker docker-engine docker.io containerd runc
+```
+
+② 安装相关前置依赖
 
 ```sh
+sudo apt-get update
 sudo apt-get install ca-certificates curl gnupg lsb-release
 ```
 
-② 安装官方的GPG key：
+③ 添加官方的GPG key：
 
 ```sh
-sudo mkdir -p /etc/apt/keyrings
-
+sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
 ```
 
-③ 将Docker的库添加到apt资源列表中：
+④ 配置本地软件仓库，将Docker的库添加到apt资源列表中：
 
 ```sh
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-//添加后更新一次apt
-sudo apt update
 ```
 
-④ 安装docker-ce版本：
+④ 安装docker engine
 
 ```sh
- sudo apt install docker-ce
+//安装前更新一次apt
+sudo apt-get update
+//直接安装Docker最新版本。如果上一步没有配置成功，这里会报错找不到相关软件包。
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-⑤ 将当前用户添加到docker用户组中，不然每次使用docker命令都需要sudo执行，很麻烦：
+⑤ 启动docker，运行hello world查看是否成功
+```sh
+sudo docker run hello-world
+```
+
+配置好后，先退出SSH终端，然后重新连接就可以生效了。
+
+## CentOS
+
+① 卸载已安装的旧版本
+旧版本的Docker使用docker、docker.io以及docker-engine的名称，可能还安装了containerd或runc等等。总之，在安装Docker之前，先卸载所有旧版本：
+```sh
+sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate
+```
+
+② 更新系统，并安装依赖
+```sh
+sudo yum update
+sudo yum install -y yum-utils
+```
+
+③ 添加 Docker 官方 GPG 密钥：
+```sh
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+```
+
+④ 安装docker engine
+
+```sh
+//先更新，从刚刚配置的 Docker 软件仓库中获取软件包列表
+sudo yum update
+//直接安装 Docker 最新版本。如果上一步没有配置成功，这里会报错找不到相关软件包。
+sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+⑤ 启动docker，运行hello world查看是否成功
+
+```sh
+sudo systemctl start docker
+sudo docker run hello-world
+```
+## 方便以后使用
+
+
+**将当前用户添加到docker用户组中**，不然每次使用docker命令都需要sudo执行，很麻烦：
 
 ```sh
 sudo usermod -aG docker <用户名>
 ```
 
-配置好后，先退出SSH终端，然后重新连接就可以生效了。
+**配置国内镜像仓库地址**
+新建/etc/docker/daemon.json文件，输入如下内容：
+
+```bash
+{
+  "registry-mirrors": [
+    "https://registry.docker-cn.com",
+    "http://hub-mirror.c.163.com",
+    "https://fsp2sfpr.mirror.aliyuncs.com/"
+  ]
+}
+```
+
+然后重启，配置开机启动
+```bash
+sudo systemctl restart docker
+sudo systemctl enable docker
+sudo systemctl enable containerd
+```
 
 # 最基本的使用
 
