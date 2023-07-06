@@ -143,7 +143,13 @@ sudo docker run -d -p 80:80 nginx
 
 # 搭建Docker环境
 
-**Windows**：容器主要使用linux内核技术，因此Windows下安装docker可能会有遇到各种问题。
+## Windows
+
+容器主要使用linux内核技术，因此Windows下安装docker可能会有遇到各种问题。
+
+通常所说的docker，是指Docker Engine，它是一种容器化技术，用于创建和运行容器。
+
+而在Windows，选择安装Docker Desktop（一个用于操作docker的GUI图形界面化工具），它包含Docker Engine。
 
 ## Ubuntu
 
@@ -740,7 +746,8 @@ docker network ls
 
 * **none网络**：这个网络除了有一个本地环回网络之外，就没有其他的网络了。使用none网络的容器是无法连接到互联网的，“真”单机运行，没人能访问进去，绝对的安全，存点密码这些还是不错的。
 
-* **bridge网络**：容器默认使用的网络类型，即桥接网络。这是应用最广泛的网络类型：
+* **bridge网络**：容器默认使用的网络类型，即桥接网络。这是应用最广泛的网络类型。宿主机可以ping通容器ip，容器中也能ping通宿主机。
+容器之间只能通过 IP 地址相互访问，由于容器的ip会随着启动顺序发生变化，因此不推荐使用ip访问。
 
   在宿主主机上查看网络信息，会发现有一个名为docker0的网络设备，这个网络设备是Docker安装时自动创建的虚拟设备。
 
@@ -791,7 +798,7 @@ docker network ls
    systemctl start nginx
   ```
 
-  相比桥接网络就方便得多。
+  相比桥接网络就方便得多。【慎用，有安全隐患】
 
 ## 用户自定义网络
 
@@ -1315,6 +1322,8 @@ docker top 容器ID/名称
 ### Portainer可视化
 
 除了敲命令之外，可以选择部署一个Docker网页管理面板应用进行监控和管理，比较常用的有：Portainer。
+
+Portainer是一个可视化的Docker管理系统，功能十分全面，提供状态显示面板、应用模板快速部署、容器镜像、网络、数据卷的基本操作、事件日志显示、容器控制台操作、登录用户管理和控制等功能。
 
 通过Docker镜像的方式去部署Portainer应用程序。
 最新版维护的地址为：https://hub.docker.com/r/portainer/portainer-ce
