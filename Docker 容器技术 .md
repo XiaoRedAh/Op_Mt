@@ -2,6 +2,8 @@
 
 **Docker官网**：https://www.docker.com
 
+**入门文档**：https://www.yuque.com/wukong-zorrm/xwas40
+
 **准备**：配置2C2G以上Linux服务器一台，云服务器、虚拟机均可。
 
 ## 虚拟机与容器
@@ -255,13 +257,13 @@ sudo systemctl enable docker
 sudo systemctl enable containerd
 ```
 
-# 最基本的使用
+# 最基本的操作
 
 ## 镜像基本操作
 
 **拉取/上传/删除/查看/搜索镜像**
 
-```sh
+```bash
 //从远程仓库拉取镜像(版本默认最新)
 docker pull 镜像:版本
 
@@ -304,6 +306,7 @@ docker run -p 8080:8080 -d 镜像
 ```sh
 //`-i`表示在容器上打开一个标准的输入接口，
 //`-t`表示分配一个伪tty设备，可以支持终端登录
+//-it 表示使用交互模式，可以在控制台里输入、输出
 //一般这两个是一起使用，否则base容器启动后就自动停止了。
 docker run -it centos
 ```
@@ -365,7 +368,40 @@ docker ps -a
 
 ### 使用Dokcerfile(推荐)
 
->例子：创建一个带Java环境的Ubuntu系统镜像。
+**dockerfile常用参数**
+`FROM` 打包使用的基础镜像
+`WORKDIR`相当于cd命令，进入工作目录
+`COPY` 将宿主机的文件复制到容器内
+`RUN`打包时执行的命令，相当于打包过程中在容器中执行shell脚本。通常用来安装应用程序所需要的依赖、设置权限、初始化配置文件等
+`CMD`运行镜像时执行的命令
+`EXPOSE`指定容器在运行时监听的网络端口，它并不会公开端口，仅起到声明的作用，公开端口需要容器运行时使用-p参数指定。
+
+```dockerfile
+FROM ubuntu:18.04
+# 设置容器启动后的默认运行目录
+WORKDIR /app
+
+COPY . .
+
+# 运行命令，安装依赖
+# RUN 命令可以有多个，但是可以用 && 连接多个命令来减少层级。
+# 例如 RUN npm install && cd /app && mkdir logs
+RUN make .
+
+# CMD 指令只能一个，是容器启动后执行的命令，算是程序的入口。
+# 如果还需要运行其他命令可以用 && 连接，也可以写成一个shell脚本去执行。
+# 例如 CMD cd /app && ./start.sh
+CMD python app.py
+
+EXPOSE 80
+```
+
+**tip**
+>如果写 Dockerfile不熟练，总是遇到一些运行错误，依赖错误等，可以直接运行一个base镜像，然后进入终端进行配置环境，成功后，再把做过的步骤命令写入Dockerfile 文件中，这样编写调试会快很多。
+
+***
+
+**例子：创建一个带Java环境的Ubuntu系统镜像。**
 
 ① 新建名为`Dockerfile`的文件：
 
