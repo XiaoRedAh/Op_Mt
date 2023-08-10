@@ -16,7 +16,7 @@ Docker可以把项目打包成一个镜像，比如现在有前端项目和后�
 * 为镜像添加nginx环境
 * 将编译后的前端项目(dist目录下)，拷贝到服务器的/web目录(这个，目录是自定义的)
 * 将编写好的nginx配置文件拷贝到给default.conf，使nginx代理自定义的web目录
-```sh
+```dockerfile
 FROM nginx
 COPY dist/ /web
 COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -24,7 +24,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 ④ 创建nginx.conf文件
 nginx不会自动代理自定义的web目录，需要配置
-```sh
+```nginx
 server{
     listen  80;
     server_name localhost;
@@ -37,7 +37,7 @@ server{
 ```
 
 ⑤ cd到前端目录，将前端项目打包成镜像
-```sh
+```bash
 docker build -t 镜像名 
 ```
 
@@ -50,7 +50,7 @@ docker build -t 镜像名
 >把打包好的镜像上传到dockerhub上，服务器去拉取dockerhub上的这个镜像
 
 ① cd到前端目录
-```sh
+```bash
 docker tag 镜像名 远程地址
 docker login
 docker push 远程仓库
@@ -58,7 +58,7 @@ docker push 远程仓库
 
 ② 服务器上拉取刚推送的镜像
 
-```sh 
+```bash
 sudo docker login
 sudo docker pull 远程仓库
 ```
@@ -67,7 +67,7 @@ sudo docker pull 远程仓库
 
 # Portainer可视化部署
 
-```sh
+```bash
 //为了方便，以后不用敲sudo，先切换到root用户
 sudo -s
 //切换到/root目录下
@@ -76,20 +76,20 @@ cd
 
 ① 下载并解压Portainer汉化包
 得到一个public目录
-```sh
+```bash
 wget http://code.imnks.com/zip/portainer-ce-public-cn-20221227.zip
 unzip portainer-ce-public-cn-20221227.zip
 ```
 
 ② 创建一个目录作为Portainer的数据目录，方便后续迁移
 现在/root目录下有一个public目录和一个data目录
-```sh
+```bash
 mkdir data
 ```
 
 ③ 启动时将Portainer的public目录挂载到宿主主机刚刚解压出来的目录下
 
-```sh
+```bash
 docker run -d -p 9000:9000 --name portainer --restart always -v /var/run/docker.sock:/var/run/docker.sock -v /root/data:/data -v /root/public:/public portainer/portainer
 ```
 
@@ -103,20 +103,20 @@ docker run -d -p 9000:9000 --name portainer --restart always -v /var/run/docker.
 
 搭建一个私有的容器仓库，不能随意访问，因此要先创建验证密码才可以
 
-```sh
+```bash
 yum install httpd-tools
 ```
 
 创建密码
 将密码复制到/root/registry/auth/passwd目录下（其他目录也可以）【加密存储】
-```sh
+```bash
 htpasswd -Bbn admin 密码 > /root/registry/auth/passwd
 ```
 
 服务器开放5000端口
 
 直接使用以下命令，然后就可以往自己的私有Docker仓库上传镜像了：
-```sh
+```bash
 docker run -d -p 5000:5000 -v /root/registry/auth:/etc/registry/auth -v /root/registry/data:/var/lib/registry -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e "REGISTRY_AUTH_HTPASSWD_PATH=/etc/registry/auth/passwd" registry
 ```
 
