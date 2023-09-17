@@ -2,7 +2,7 @@
 
 Docker可以把项目打包成一个镜像，比如现在有前端项目和后端项目要分别部署在两台服务器上，那么可以先将其打包为Docker镜像然后上传到DockerHub容器仓库：买服务器 -> Docker系统 -> 从DockerHub拉取镜像然后运行 -> 服务器重启 -> 不需要操作，自动启动
 
-# 本地镜像打包
+# 本地打包镜像
 
 本地下载一个桌面版的Docker方便操作
 
@@ -43,29 +43,73 @@ docker build -t 镜像名
 
 打开桌面端的docker，发现已经成功生成前端项目的镜像了，run运行即可在localhost访问到它
 
+⑥ cd到前端目录，将打包好的镜像推送到DockerHub
+```bash
+docker tag 镜像名:[标签] 远程仓库名:[标签]
+docker login
+docker push 远程仓库名:[标签]
+```
+
+>注意：
+1、push之前必须先为镜像打上标签
+2、docker tag可以不设置标签，默认为lastest
+3、如果远程仓库是私有的，需要 远程仓库地址/远程仓库名:[标签]
+
 ## 后端项目打包为镜像
+
+① 把application.yml中的数据库等配置修改一下，以匹配要部署到的服务器
+
+② 将后端项目打包为jar包
+
+③ 在项目中编写Dockerfile文件
+```dockerfile
+FROM openjdk:17-jdk-alpine
+COPY target/xxx.jar /work/app.jar
+WORKDIR /work
+CMD ["-jar","java"，"app.jar"]
+```
+
+④ cd到后端目录，将后端项目打包成镜像
+```bash
+docker build -t 镜像名 
+```
+
+打开桌面端的docker，发现已经成功生成前端项目的镜像了，run运行即可在localhost访问到它
+
+⑤ cd到后端目录，将打包好的镜像推送到DockerHub
+```bash
+docker tag 镜像名:[标签] 远程仓库名:[标签]
+docker login
+docker push 远程仓库名:[标签]
+```
 
 # 服务器部署
 
->把打包好的镜像上传到dockerhub上，服务器去拉取dockerhub上的这个镜像
+>在之前，已经把前后端项目都各自构建成镜像，上传到dockerhub中了。
+现在只需要在服务器那里，把前后端项目的镜像从去dockerhub拉取下来，直接docker run即可
 
-① cd到前端目录
-```bash
-docker tag 镜像名 远程地址
-docker login
-docker push 远程仓库
-```
-
-② 服务器上拉取刚推送的镜像
+① 服务器上拉取之前推送到DockerHub中的前端，后端项目镜像
 
 ```bash
 sudo docker login
 sudo docker pull 远程仓库
 ```
 
-现在，只需要服务器上run这个镜像，用服务器地址和对应端口就能访问到前端项目了
+开放涉及到的端口，在服务器上run这两个镜像即可
+而现在后端启动还有点问题，服务器这边mysql数据库还没有
 
-# Portainer可视化部署
+② 在服务器这里直接运行一个mysql镜像
+```bash
+docker run -d -p 3306:3306 -v /root/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name mysql mysql
+```
+
+③ 本地mysql数据库对应的数据迁移到服务器的mysql
+
+用navicat远程连接服务器的mysql【密码就是上一步配置的123456】，本地mysql的数据导出为一个个.sql文件，导入到服务器端的mysql，就可以完成数据的迁移了
+
+④ 运行前端，后端，mysql这三个镜像，整个项目就跑起来了【当然，如果这个项目还涉及到其他的一些配置，比如redis，也是差不多的配置方法】
+
+# Portainer可视化管理
 
 ```bash
 //为了方便，以后不用敲sudo，先切换到root用户
@@ -121,8 +165,11 @@ docker run -d -p 5000:5000 -v /root/registry/auth:/etc/registry/auth -v /root/re
 ```
 
 Mac/Windows处理HTTP问题：
-
+```sh
 "insecure-registries":["仓库ip:port"]
-Linux：
+```
 
+Linux：
+```sh
 --insecure-registry ip:port
+```
